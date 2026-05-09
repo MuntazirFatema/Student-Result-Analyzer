@@ -3,7 +3,8 @@
 A web-based student result analysis tool built with Flask and Python OOP. Teachers can upload a class CSV file and instantly get per-student grades, percentages, pass/fail status, class topper, and grade-wise breakdown — replacing hours of manual calculation with a 2-second automated report.
 
 ## Live Demo
-🔗 [Student Result Analyzer](your-render-link-here)
+https://student-result-analyzer-8lbt.onrender.com
+
 
 ## Features
 - Upload CSV with any number of subjects
@@ -20,3 +21,33 @@ A web-based student result analysis tool built with Flask and Python OOP. Teache
 - **Deployment:** Render
 
 ## CSV Format
+enroll_no, name, class, sub1, sub2, sub3, ... (any number of subjects)
+001, Fatema, 10A, 85, 90, 78, 92, 88
+002, Raj, 10A, 60, 45, 72, 55, 70
+## Grading System
+| Grade | Percentage |
+|-------|------------|
+| A | 75% and above |
+| B | 60% - 74% |
+| C | 50% - 59% |
+| D | 35% - 49% |
+| F | Below 35% (Fail) |
+
+## How to Run Locally
+```bash
+git clone https://github.com/MuntazirFatema/Student-Result-Analyzer
+cd Student-Result-Analyzer
+pip install -r requirements.txt
+python app.py
+```
+Then open "https://student-result-analyzer-8lbt.onrender.com"
+
+## Project Structure
+Student-Result-Analyzer/
+├── app.py           # Flask routes
+├── analyzer.py      # Python OOP logic
+├── requirements.txt
+├── Procfile
+└── templates/
+├── index.html   # Upload form
+└── result.html  # Results dashboard
