@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Results — Student Result Analyzer</title>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0e0e0e;
+      --surface: #161616;
+      --border: #2a2a2a;
+      --accent: #c8f135;
+      --accent2: #3df5a0;
+      --text: #f0f0f0;
+      --muted: #666;
+      --pass: #3df5a0;
+      --fail: #ff4f4f;
+    }
+
+    body {
+      font-family: 'Syne', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      padding: 2rem;
+    }
+
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image:
+        linear-gradient(var(--border) 1px, transparent 1px),
+        linear-gradient(90deg, var(--border) 1px, transparent 1px);
+      background-size: 40px 40px;
+      opacity: 0.3;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .wrapper {
+      position: relative;
+      z-index: 1;
+      max-width: 1000px;
+      margin: 0 auto;
+    }
+
+    /* Header */
+    .header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 2.5rem;
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+
+    .header h1 {
+      font-size: clamp(1.5rem, 4vw, 2.2rem);
+      font-weight: 800;
+    }
+
+    .header h1 span { color: var(--accent); }
+
+    .back-btn {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.78rem;
+      color: var(--muted);
+      text-decoration: none;
+      border: 1px solid var(--border);
+      padding: 6px 14px;
+      border-radius: 4px;
+      transition: color 0.2s, border-color 0.2s;
+    }
+
+    .back-btn:hover { color: var(--accent); border-color: var(--accent); }
+
+    /* Summary cards */
+    .summary-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 1rem;
+      margin-bottom: 2.5rem;
+    }
+
+    .stat-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 1.2rem;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .stat-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 2px;
+    }
+
+    .stat-card.green::before { background: var(--accent); }
+    .stat-card.teal::before { background: var(--accent2); }
+    .stat-card.red::before { background: var(--fail); }
+    .stat-card.yellow::before { background: #f5c842; }
+
+    .stat-label {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.68rem;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-bottom: 0.5rem;
+    }
+
+    .stat-value {
+      font-size: 1.6rem;
+      font-weight: 800;
+      line-height: 1;
+    }
+
+    .stat-card.green .stat-value { color: var(--accent); }
+    .stat-card.teal .stat-value { color: var(--accent2); }
+    .stat-card.red .stat-value { color: var(--fail); }
+    .stat-card.yellow .stat-value { color: #f5c842; }
+
+    /* Grade breakdown */
+    .grade-row {
+      display: flex;
+      gap: 0.6rem;
+      margin-bottom: 2.5rem;
+      flex-wrap: wrap;
+    }
+
+    .grade-pill {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.75rem;
+      padding: 6px 14px;
+      border-radius: 20px;
+      border: 1px solid var(--border);
+      color: var(--muted);
+    }
+
+    .grade-pill strong { color: var(--text); margin-right: 4px; }
+
+    /* Table */
+    .table-wrap {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+    }
+
+    .table-header {
+      padding: 1rem 1.5rem;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .table-header h2 {
+      font-size: 0.95rem;
+      font-weight: 700;
+    }
+
+    .table-header span {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.72rem;
+      color: var(--muted);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    thead th {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.68rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--muted);
+      padding: 0.75rem 1.2rem;
+      text-align: left;
+      border-bottom: 1px solid var(--border);
+      background: #111;
+    }
+
+    tbody tr {
+      border-bottom: 1px solid #1e1e1e;
+      transition: background 0.15s;
+    }
+
+    tbody tr:hover { background: #1a1a1a; }
+    tbody tr:last-child { border-bottom: none; }
+
+    td {
+      padding: 0.85rem 1.2rem;
+      font-size: 0.88rem;
+    }
+
+    .enroll {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.75rem;
+      color: var(--muted);
+    }
+
+    .name { font-weight: 600; }
+
+    .pct {
+      font-family: 'DM Mono', monospace;
+      font-weight: 500;
+    }
+
+    .grade-badge {
+      display: inline-block;
+      font-family: 'DM Mono', monospace;
+      font-size: 0.75rem;
+      font-weight: 700;
+      width: 28px;
+      height: 28px;
+      line-height: 28px;
+      text-align: center;
+      border-radius: 4px;
+    }
+
+    .grade-A { background: rgba(200,241,53,0.15); color: var(--accent); }
+    .grade-B { background: rgba(61,245,160,0.15); color: var(--accent2); }
+    .grade-C { background: rgba(245,200,66,0.15); color: #f5c842; }
+    .grade-D { background: rgba(255,165,0,0.15); color: orange; }
+    .grade-F { background: rgba(255,79,79,0.15); color: var(--fail); }
+
+    .status-badge {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.7rem;
+      font-weight: 600;
+      padding: 3px 10px;
+      border-radius: 20px;
+      letter-spacing: 0.05em;
+    }
+
+    .status-PASS { background: rgba(61,245,160,0.12); color: var(--pass); border: 1px solid rgba(61,245,160,0.3); }
+    .status-FAIL { background: rgba(255,79,79,0.12); color: var(--fail); border: 1px solid rgba(255,79,79,0.3); }
+
+    .footer {
+      margin-top: 2rem;
+      text-align: center;
+      font-family: 'DM Mono', monospace;
+      font-size: 0.7rem;
+      color: var(--muted);
+    }
+  </style>
+</head>
+<body>
+  <div class="wrapper">
+
+    <div class="header">
+      <h1>Class <span>Results</span></h1>
+      <a href="/" class="back-btn">← Analyze Another</a>
+    </div>
+
+    <!-- Summary Stats -->
+    <div class="summary-grid">
+      <div class="stat-card green">
+        <div class="stat-label">🏆 Topper</div>
+        <div class="stat-value" style="font-size:1.1rem; margin-top:4px;">{{ summary.topper }}</div>
+      </div>
+      <div class="stat-card teal">
+        <div class="stat-label">✅ Passed</div>
+        <div class="stat-value">{{ summary.pass_count }}</div>
+      </div>
+      <div class="stat-card red">
+        <div class="stat-label">❌ Failed</div>
+        <div class="stat-value">{{ summary.fail_count }}</div>
+      </div>
+      <div class="stat-card yellow">
+        <div class="stat-label">👥 Total Students</div>
+        <div class="stat-value">{{ results | length }}</div>
+      </div>
+    </div>
+
+    <!-- Grade Breakdown -->
+    <div class="grade-row">
+      <div class="grade-pill"><strong>A</strong> {{ summary.grade_count.no_of_A_grade }} students</div>
+      <div class="grade-pill"><strong>B</strong> {{ summary.grade_count.no_of_B_grade }} students</div>
+      <div class="grade-pill"><strong>C</strong> {{ summary.grade_count.no_of_C_grade }} students</div>
+      <div class="grade-pill"><strong>D</strong> {{ summary.grade_count.no_of_D_grade }} students</div>
+      <div class="grade-pill"><strong>F</strong> {{ summary.grade_count.no_of_fail_student }} students</div>
+    </div>
+
+    <!-- Student Table -->
+    <div class="table-wrap">
+      <div class="table-header">
+        <h2>Student Breakdown</h2>
+        <span>{{ results | length }} records</span>
+      </div>
+      <table>
+        <thead>
+          <tr>
+            <th>Enroll No</th>
+            <th>Name</th>
+            <th>Total</th>
+            <th>Average</th>
+            <th>Percentage</th>
+            <th>Grade</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for student in results %}
+          <tr>
+            <td class="enroll">{{ student.enroll_no }}</td>
+            <td class="name">{{ student.name }}</td>
+            <td>{{ student.total }}</td>
+            <td class="pct">{{ "%.1f"|format(student.average_marks) }}</td>
+            <td class="pct">{{ "%.1f"|format(student.percentage) }}%</td>
+            <td><span class="grade-badge grade-{{ student.grade }}">{{ student.grade }}</span></td>
+            <td><span class="status-badge status-{{ student.status }}">{{ student.status }}</span></td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <div class="footer">Student Result Analyzer — built with Flask + Python</div>
+  </div>
+</body>
+</html>
